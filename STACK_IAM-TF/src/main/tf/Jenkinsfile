@@ -8,3 +8,8 @@ pipeline {
         }
     }
 }
+
+def getTerraformPath(){
+    def tfHome= tool name: '', type: 'terraform'
+    return tfHome
+}
