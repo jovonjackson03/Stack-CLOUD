@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"aws_mfa","Source":"trussworks/mfa/aws","Version":"3.0.1","Dir":".terraform/modules/aws_mfa"},{"Key":"","Source":"","Dir":"."},{"Key":"enforce_mfa","Source":"terraform-module/enforce-mfa/aws","Version":"0.12.0","Dir":".terraform/modules/enforce_mfa"}]}
