@@ -2,10 +2,6 @@
 
 #create EFS File System
 resource "aws_efs_file_system" "efs" {
-    creation_token = "my-efs"
-    tags = {
-    Name = "Jackson EFS"
-    }
 }
 
 #create a mount target
@@ -27,9 +23,6 @@ resource "null_resource" "configure_nfs" {
 
 # Deafult VPC
 resource "aws_default_vpc" "default" {
-    tags = {
-    Name = "Default VPC"
-    }
 }
 
 
@@ -40,7 +33,6 @@ resource "aws_default_subnet" "default" {
 
 #create instance profile
 resource "aws_iam_instance_profile" "tf_ec2_profile" {
-    name = "tf_ec2_profile"
     role = aws_iam_role.S3_role.name
 }
 
@@ -49,14 +41,10 @@ resource "aws_instance" "web" {
     ami           = var.AMIS["us-east-1"] #"ami-0742b4e673072066f"
     instance_type = "t2.micro"
     security_groups = [aws_security_group.allow_alot.name]
-    tags = {
-    Name = "Jackson TF Instance"
-    }
 }
 
 #create role with full S3 access for instance profile
 resource "aws_iam_role" "S3_role" {
-    name = "S3_role"
     assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -76,9 +64,7 @@ EOF
 
 #create policy for Role
 resource "aws_iam_policy" "S3_policy" {
-    name        = "test-policy"
     description = "A test policy"
-
     policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -102,7 +88,6 @@ resource "aws_iam_role_policy_attachment" "S3-attach" {
 
 #Launch Configuration
 resource "aws_launch_configuration" "WP_LC" {
-    name_prefix   = "TF_WP_LC"
     image_id      = "ami-0742b4e673072066f"
     instance_type = "t2.micro"
     #key_name = var.PATH_TO_PUBLIC_KEY
@@ -124,7 +109,6 @@ resource "aws_autoscaling_policy" "WP_ASG" {
 
 #Autoscaling Group
 resource "aws_autoscaling_group" "ASG" {
-    name                      = "WP_EFS_ASG"
     max_size                  = 3
     desired_capacity          = 2
     min_size                  = 1
@@ -138,12 +122,8 @@ resource "aws_autoscaling_group" "ASG" {
 
 #Create a Security Group
 resource "aws_security_group" "allow_alot" {
-    name        = "allow_tls"
     description = "Allow TLS inbound traffic"
     vpc_id      = aws_default_vpc.default.id
-    tags = {
-    Name = "Jackson Security"
-    }
 }
 
 resource "aws_security_group_rule" "HTTPS" {
@@ -232,7 +212,4 @@ resource "aws_volume_attachment" "ebs_att" {
 resource "aws_ebs_volume" "Volume_1" {
     availability_zone = "us-east-1a"
     size              = 1
-    tags = {
-    Name = "Jackson EBS Volume"
-    }
 }
