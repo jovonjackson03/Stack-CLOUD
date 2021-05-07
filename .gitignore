@@ -1,0 +1,10 @@
+STACK-S3-TF/.terraform/*
+STACK_IAM-TF/.terraform/*
+STACK_EC2-TF/.terraform/*
+STACK_EC2-TF-MODULES/.terraform/*
+#STACK-S3-TF/src/main/tf/terraform.tfvars
+#terraform.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+.terraform/

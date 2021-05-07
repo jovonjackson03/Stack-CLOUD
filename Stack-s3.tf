@@ -80,17 +80,15 @@ resource "aws_s3_bucket" "web_bucket" {
     error_document = "error.html"
 	}
 
-#enable server access logging
-	logging {
-		target_bucket = aws_s3_bucket.server_access_log_bucket.id
-		target_prefix = "log/"
-	}
-
-#lifecycle
-	lifecycle {
-        prevent_destroy = false
+#configure bucket encryption
+	server_side_encryption_configuration {
+	rule {
+	apply_server_side_encryption_by_default {
+        kms_master_key_id = aws_kms_key.mykey.arn
+        sse_algorithm     = "aws:kms"
     }
-
+    }
+}
 }
 
 #create a server access log bucket

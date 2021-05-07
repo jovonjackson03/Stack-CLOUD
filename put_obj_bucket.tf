@@ -5,6 +5,7 @@ resource "aws_s3_bucket_object" "object1" {
 	source = "C:/Apps/terraform/tf/index.html"
 	acl = "public-read-write"
 	force_destroy = true
+	kms_key_id = aws_kms_key.mykey.arn
 }
 
 resource "aws_s3_bucket_object" "object2" {
@@ -13,6 +14,7 @@ resource "aws_s3_bucket_object" "object2" {
 	source = "C:/Apps/terraform/tf/error.html"
 	acl = "public-read-write"
 	force_destroy = true
+	kms_key_id = aws_kms_key.mykey.arn
 }
 
 resource "aws_s3_bucket_object" "object3" {
@@ -21,6 +23,7 @@ resource "aws_s3_bucket_object" "object3" {
 	source = "C:/Apps/terraform/tf/Stack_IT_Logo.png"
 	acl = "public-read-write"
 	force_destroy = true
+	kms_key_id = aws_kms_key.mykey.arn
 }
 
 
