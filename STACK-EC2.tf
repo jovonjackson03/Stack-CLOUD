@@ -40,7 +40,12 @@ resource "aws_iam_instance_profile" "tf_ec2_profile" {
 resource "aws_instance" "web" {
     ami           = var.AMIS["us-east-1"] #"ami-0742b4e673072066f"
     instance_type = "t2.micro"
+    key_name = "MyEC2KeyPairCSA"
     security_groups = [aws_security_group.allow_alot.name]
+    user_data = templatefile("BOOTSTRAP1.sh",{ 
+        FILE_SYSTEM_ID = aws_efs_file_system.efs.id,
+        REGION = var.AWS_REGION,
+        MOUNT_POINT = "/var/www/html" })
 }
 
 #create role with full S3 access for instance profile
@@ -90,7 +95,7 @@ resource "aws_iam_role_policy_attachment" "S3-attach" {
 resource "aws_launch_configuration" "WP_LC" {
     image_id      = "ami-0742b4e673072066f"
     instance_type = "t2.micro"
-    #key_name = var.PATH_TO_PUBLIC_KEY
+    key_name = "MyEC2KeyPairCSA" #key_name = var.PATH_TO_PUBLIC_KEY
     security_groups = [aws_security_group.allow_alot.id]
     user_data = templatefile("BOOTSTRAP1.sh",{ 
         FILE_SYSTEM_ID = aws_efs_file_system.efs.id,
@@ -119,6 +124,18 @@ resource "aws_autoscaling_group" "ASG" {
     vpc_zone_identifier       = [aws_default_subnet.default.id]
 }
 
+#EBS Volume Attachment
+resource "aws_volume_attachment" "ebs_att" {
+    device_name = "/dev/sdb"
+    volume_id   = aws_ebs_volume.Volume_1.id
+    instance_id = aws_instance.web.id
+}
+
+#EBS Volume
+resource "aws_ebs_volume" "Volume_1" {
+    availability_zone = "us-east-1a"
+    size              = 1
+}
 
 #Create a Security Group
 resource "aws_security_group" "allow_alot" {
@@ -154,15 +171,6 @@ resource "aws_security_group_rule" "SSH" {
     security_group_id = aws_security_group.allow_alot.id
 }
 
-resource "aws_security_group_rule" "DNS_UDP" {
-    type              = "ingress"
-    from_port         = 53
-    to_port           = 53
-    protocol          = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-    security_group_id = aws_security_group.allow_alot.id
-}
-
 
 resource "aws_security_group_rule" "DNS_TCP" {
     type              = "ingress"
@@ -193,6 +201,15 @@ resource "aws_security_group_rule" "NFS" {
     security_group_id = aws_security_group.allow_alot.id
 }
 
+resource "aws_security_group_rule" "DNS_UDP" {
+    type              = "ingress"
+    from_port         = 53
+    to_port           = 53
+    protocol          = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+    security_group_id = aws_security_group.allow_alot.id
+}
+
 resource "aws_security_group_rule" "all" {
     type              = "egress"
     from_port         = 0
@@ -200,16 +217,4 @@ resource "aws_security_group_rule" "all" {
     protocol          = "-1"
     cidr_blocks = ["0.0.0.0/0"]
     security_group_id = aws_security_group.allow_alot.id
-}
-
-
-resource "aws_volume_attachment" "ebs_att" {
-    device_name = "/dev/sdb"
-    volume_id   = aws_ebs_volume.Volume_1.id
-    instance_id = aws_instance.web.id
-}
-
-resource "aws_ebs_volume" "Volume_1" {
-    availability_zone = "us-east-1a"
-    size              = 1
 }
