@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    triggers {
-        githubPush()
-    }
-    }
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
     }
@@ -43,4 +39,3 @@ def getTerraformPath(){
         def tfHome= tool name: 'terraform-14', type: 'terraform'
         return tfHome
     }
-
