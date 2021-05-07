@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    triggers {
+        githubPush()
+    }
+    }
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
     }
