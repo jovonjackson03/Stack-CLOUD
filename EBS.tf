@@ -73,4 +73,3 @@ resource "aws_volume_attachment" "ebs_u04" {
     instance_id = aws_instance.web.id
     force_detach = true
 }
-
