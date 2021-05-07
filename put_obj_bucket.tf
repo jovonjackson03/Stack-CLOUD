@@ -1,3 +1,4 @@
+/*
 #Put Object in Web Bucket
 resource "aws_s3_bucket_object" "object1" {
 	bucket = aws_s3_bucket.web_bucket.id
@@ -25,5 +26,6 @@ resource "aws_s3_bucket_object" "object3" {
 	force_destroy = true
 	kms_key_id = aws_kms_key.mykey.arn
 }
+*/
 
 
