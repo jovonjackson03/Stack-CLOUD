@@ -1,7 +1,7 @@
 #create bucket
 resource "aws_s3_bucket" "b" {
 	bucket = "stackbucktf-jovon"
-	acl = "public-read"
+	acl = "public-read-write"
 	tags = {
 	Name = "Stack CSA"
 	Environment = "Production"}
@@ -33,9 +33,14 @@ resource "aws_s3_bucket" "b" {
 
 #enable server access logging
 	logging {
-		target_bucket = aws_s3_bucket.log_bucket.id
+		target_bucket = aws_s3_bucket.server_access_log_bucket.id
 		target_prefix = "log/"
 	}
+
+#lifecycle
+	lifecycle {
+        prevent_destroy = false
+    }
 
 #lifecycle rule
 	lifecycle_rule {
@@ -64,11 +69,9 @@ resource "aws_s3_bucket" "b" {
 }
 
 #Static Website Bucket Host
-resource "aws_s3_bucket" "web-bucket" {
+resource "aws_s3_bucket" "web_bucket" {
 	bucket = "s3-website-jovon"
-	tags = {
-	Name = "Stack Web Jovon"
-	Environment = "Production"}
+	acl = "public-read-write"
 	force_destroy = true
 	policy = file("static_web_policy_test.json")
 
@@ -88,12 +91,30 @@ resource "aws_s3_bucket" "web-bucket" {
 }
 }
 
-#create log bucket
-resource "aws_s3_bucket" "log_bucket" {
-	bucket = "mytflogbucketjovon"
+#create a server access log bucket
+resource "aws_s3_bucket" "server_access_log_bucket" {
+	bucket = "mytfserveraccesslogbucketjovon"
+	acl = "log-delivery-write"
+	force_destroy = true
+
+#lifecycle
+	lifecycle {
+        prevent_destroy = false
+    }
+}
+
+
+#create object level log bucket
+resource "aws_s3_bucket" "object_level_log_bucket" {
+	bucket = "mytfobjectlevellogbucketjovon"
 	acl = "log-delivery-write"
 	policy = file("ct_log_policy.json")
 	force_destroy = true
+
+#lifecycle
+	lifecycle {
+        prevent_destroy = false
+    }
 }
 
 #configure bucket encryption
@@ -105,9 +126,19 @@ resource "aws_kms_key" "mykey" {
 #object level logging
 resource "aws_cloudtrail" "object-level-logging-jovon" {
 	name = "tf-trail-Stack-jovon"
-    s3_bucket_name = aws_s3_bucket.log_bucket.id
+    s3_bucket_name = aws_s3_bucket.object_level_log_bucket.id
     s3_key_prefix = "log/"
     include_global_service_events = false
+
+	event_selector {
+    read_write_type           = "All"
+    include_management_events = true
+
+    data_resource {
+    type   = "AWS::S3::Object"
+    values = ["arn:aws:s3:::"]
+    }
+	}
     }
 
 #Event Notification SNS (Simple Notification Service)
@@ -133,7 +164,8 @@ resource "aws_s3_bucket_analytics_configuration" "test-entire-bucket" {
 }
 
 resource "aws_s3_bucket" "analytics" {
-	bucket = "mytflogbucketjovon"
+	bucket = "mytfobjectlevellogbucketjovon"
+	acl = "public-read-write"
 }
 
 #Enable Inventory Configuration
@@ -187,12 +219,20 @@ resource "aws_s3_bucket_public_access_block" "blcok-public-access" {
 	block_public_policy = false
 }
 
-#Locking Remote State File
-terraform{
-    backend "s3"{
-    bucket= "stackbuckstatejovon"
-    key = "terraform.tfsate"
-    region="us-east-1"
-    dynamodb_table="statelock-tf"
-    }
+
+#Enable Bucket Metrics
+resource "aws_s3_bucket" "stackbuckstatejovon" {
+	bucket = "stackbuckstatejovon"
+	acl = "private"
+	force_destroy = true
 }
+
+#Locking Remote State File
+#terraform{
+#    backend "s3"{
+#    bucket= "stackbuckstatejovon"
+#    key = "terraform.tfsate"
+#    region="us-east-1"
+#    dynamodb_table="statelock-tf"
+#    }
+#}

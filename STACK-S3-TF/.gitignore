@@ -8,3 +8,4 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.lock.hcl
 .terraform/
+STACK-S3-TF/put_obj_bucket.tf
